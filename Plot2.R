@@ -1,0 +1,33 @@
+library(data.table)
+library(dplyr)
+library(lubridate)
+
+#sets the location of the zip file to a location in your current working directory
+zipLoc<-'./exdata_data_household_power_consumption.zip'
+
+#unzips the file into a folder called exdata_data_household_power_consumption
+unzip(zipLoc)
+
+raw<-tbl_df(read.table('household_power_consumption.txt', header=FALSE, sep= ';'
+                       , na.strings = c('?',''), skip=66637, nrows=2880))
+
+#get and apply column headers from first row of data
+names<-read.table('household_power_consumption.txt', header=TRUE, sep= ';'
+                  , na.strings = c('?',''), nrows=1)
+
+names(raw)<-names(names) 
+
+#Convert the date into a date class object so we can get the Day name
+raw$Date=as.Date(raw$Date, '%d/%m/%Y')
+
+raw$DateTime<-paste(raw$Date,raw$Time)
+raw$DateTime<-strptime(raw$DateTime,'%Y-%m-%d %H:%M:%S')
+
+
+#draw the second graph
+png(filename="plot2.png", width=480, height=480)
+par(bg='transparent')
+with(raw, plot(raw$DateTime,raw$Global_active_power, 
+               ylab='Global Active Power (killowatts)', xlab='',type='l'))
+axis.POSIXct(1,x=raw$DateTime)
+dev.off()
